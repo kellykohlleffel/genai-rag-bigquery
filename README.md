@@ -39,7 +39,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 
 ### **Code Block 1**
 ```
-#@title Set Project Id Environment Variable
+#@title Code Block 1: Set Project Id Environment Variable
 #Replace <Your Project ID> with your own Project Id
 
 %env PROJECT=<Your Project Id>
@@ -50,7 +50,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 
 ### **Code Block 2**
 ```
-#@title Create Cloud Resource Connection
+#@title Code Block 2: Create Cloud Resource Connection
 
 !bq mk \
   --connection \
@@ -64,7 +64,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 
 ### **Code Block 3**
 ```
-#@title Retrieve Details for the new Cloud Resource Connection
+#@title Code Block 3: Retrieve Details for the new Cloud Resource Connection
 
 !bq show \
   --format=json --connection \
@@ -78,7 +78,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 Using the Service Account Email from the previous step, assign the aiplatform.user role to the Service Account.  This allows the Service Account to access Vertex AI services.
 
 ```
-#@title Give Service Account Permissions for Vertex AI
+#@title Code Block 4: Give Service Account Permissions for Vertex AI
 # Replace <Service Account Email From The Previous Step> with your Service Account Id
 
 
@@ -95,7 +95,7 @@ Using the Service Account Email from the previous step, assign the aiplatform.us
 Create a new dataset in your BigQuery project.  We will use this dataset in future steps for storing new database objects that we will be creating.
 
 ```
-#@title Create BigQuery Dataset for new objects
+#@title Code Block 5: Create BigQuery Dataset for new objects
 
 !bq --location=US mk --dataset \
 --default_table_expiration=0 \
@@ -111,7 +111,7 @@ We’ll create a new model in the dataset that you created in the previous step.
 Later, when we build our app, we will reference this model for sending our query context to Gemini.
 
 ```
-#@title Create Remote Model for interacting with Gemini
+#@title Code Block 6: Create Remote Model for interacting with Gemini
 
 %%bigquery
 CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_model
@@ -128,7 +128,7 @@ Create another new model in the dataset that you created previously.  We’ll be
 We will be using this model for creating the vector embeddings for our data, which will be used by our Travel Assistant for Semantic Search.
 
 ```
-#@title Create Remote Model for interacting with a Text Embedding Model
+#@title Code Block 7: Create Remote Model for interacting with a Text Embedding Model
 
 %%bigquery
 CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_embed_model
@@ -145,7 +145,7 @@ OPTIONS (ENDPOINT = 'text-embedding-004');
 Now, we will create a new table in the dataset you created in one of the earlier steps.  This table will contain the vector embeddings of our data.  Before creating the embeddings, the columns in the table are concatenated to create a textual description of the winery, which is a more appropriate format for LLMs to work with.
 
 ```
-#@title Append Winery Details and Create Search Embeddings
+#@title Code Block 8: Append Winery Details and Create Search Embeddings
 #Replace <Your Fivetran Dataset Name> with the name of the dataset that you specified
 #when setting up your BigQuery destination in Fivetran
 #For Example: lastname_agriculture
@@ -207,7 +207,7 @@ FROM ML.GENERATE_TEXT_EMBEDDING(
 Now let's check out the output of those LLM transformations.
 
 ```
-#@title Here is the output of the LLM transformations
+#@title Code Block 9: Here is the output of the LLM transformations
 
 %%bigquery
 CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_model
@@ -231,7 +231,7 @@ This Code Block will install the Gradio software and the IPython interpreter.  O
 Because this is the first code block being executed, it may take up to 60 seconds for the runtime environment to be allocated before the code is executed.  This is a one-time initialization and won’t be required in subsequent steps.
 
 ```
-#@title Dependency installation
+#@title Code Block 1: Dependency installation
 
 !pip install gradio
 
@@ -247,7 +247,7 @@ app.kernel.do_shutdown(True)
 This code block will...
 
 ```
-#@title Import modules
+#@title Code Block 2: Import modules
 
 import time
 from datetime import date
@@ -280,7 +280,7 @@ BQ_MODEL: The name of the model you created for connecting to the text embedding
 This code block will...
 
 ```
-#@title Parameters
+#@title Code Block 3: Parameters
 
 
 PROJECT = "iamtests-315719"  # @param {type:"string"}
@@ -314,7 +314,7 @@ google_auth.authenticate_user()
 This code block will...
 
 ```
-#@title Functions
+#@title Code Block 4: Functions
 
 def query_bigquery(query):
  bq_template = f"""
@@ -479,6 +479,7 @@ def ask_question_with_params(prompt, model, history,use_bq, use_gs):
 This Code Block will ...
 
 ```
+#@title Code Block 5: Initialize models
 INIT_MODEL = vertexai.generative_models.GenerativeModel(MODEL, system_instruction=[system_prompt])
 ```
 
@@ -487,6 +488,7 @@ INIT_MODEL = vertexai.generative_models.GenerativeModel(MODEL, system_instructio
 This Code Block will ...
 
 ```
+#@title Code Block 6: Quick test 
 query = "hi"
 history = ""
 answer, history = ask_question(query,model, history)
@@ -498,7 +500,7 @@ print(answer)
 This Code Block will ...
 
 ```
-#@title Gradio App
+#@title Code Block 7: Gradio App
 import gradio as gr
 
 
