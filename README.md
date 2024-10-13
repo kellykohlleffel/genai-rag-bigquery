@@ -324,19 +324,6 @@ from IPython.display import display, Markdown, Latex
 
 > ## NOTE - For the next step, you will need to update several parameters to be specific to your environment before running the code block:
 
-
-**Update the PROJECT ID:** Your Project ID
-
-<br/> **Update the BQ_TABLE:** The name of the table you created for storing the vector embeddings:
-```
-Project ID.travel_assistant_ds.california_wine_country_embeddings
-```
-
-<br/> **Update the BQ_MODEL:** The name of the model you created for connecting to the text embedding endpoint:
-```
-Project ID.travel_assistant_ds.travel_asst_embed_model
-```
-
 ### **Code Block 3**
 
 This code block will...
@@ -369,6 +356,16 @@ model = generative_models.GenerativeModel(MODEL)
 #authenticate
 from google.colab import auth as google_auth
 google_auth.authenticate_user()
+```
+> **Update the PROJECT ID:** Your Project ID
+
+> <br/> **Update the BQ_TABLE:** The name of the table you created for storing the vector embeddings:
+```
+Project ID.travel_assistant_ds.california_wine_country_embeddings
+```
+> <br/> **Update the BQ_MODEL:** The name of the model you created for connecting to the text embedding endpoint:
+```
+Project ID.travel_assistant_ds.travel_asst_embed_model
 ```
 
 ### **Code Block 4**
