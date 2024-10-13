@@ -59,6 +59,34 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
   --connection_type=CLOUD_RESOURCE travel_asst_conn
 ```
 
+**The output should be similar to this:**
+<br/> Connection 203414464784.us.travel_asst_conn successfully created
+
+## **Code Block 3**
+```
+#@title Retrieve Details for the new Cloud Resource Connection
+
+!bq show \
+  --format=json --connection \
+  $PROJECT.us.travel_asst_conn
+```
+
+> ### Note - For the next step, you will need the value of the serviceAccountId field, which is the unique email address associated with the Service Account.  If you scroll the output from the previous command all the way to the right, you’ll see the email address. You can easily copy the email address by right-clicking on it and selecting “Copy Email Address”.
+
+## **Code Block 4**
+
+Using the Service Account Email from the previous step, assign the aiplatform.user role to the Service Account.  This allows the Service Account to access Vertex AI services.
+
+```
+#@title Give Service Account Permissions for Vertex AI
+# Replace <Service Account Email From The Previous Step> with your Service Account Id
+
+
+!gcloud projects add-iam-policy-binding $PROJECT \
+  --member='serviceAccount:<Service Account Email From The Previous Step>' \
+  --role='roles/aiplatform.user' \
+  --condition=None
+```
 
 ### STEP 3: Transform the new structured dataset into a single string to simulate an unstructured document
 * Open a New Worksheet in **Snowflake Snowsight** (left gray navigation under Projects)
