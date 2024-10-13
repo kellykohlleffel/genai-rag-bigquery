@@ -328,12 +328,12 @@ from IPython.display import display, Markdown, Latex
 
 <br/> **BQ_TABLE:** The name of the table you created for storing the vector embeddings:
 ```
-<br/> Project ID.travel_assistant_ds.california_wine_country_embeddings
+Project ID.travel_assistant_ds.california_wine_country_embeddings
 ```
 
 <br/> **BQ_MODEL:** The name of the model you created for connecting to the text embedding endpoint:
 ```
-<br/> Project ID.travel_assistant_ds.travel_asst_embed_model
+Project ID.travel_assistant_ds.travel_asst_embed_model
 ```
 
 ### **Code Block 3**
