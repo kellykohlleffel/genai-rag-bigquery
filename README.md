@@ -204,18 +204,72 @@ FROM ML.GENERATE_TEXT_EMBEDDING(
 
 ### **Code Block 9**
 
-Now let's check out the output of those LLM transformations.
+Now, let's check out the output of those LLM transformations.
 
 ```
-#@title Code Block 9: Here is the output of the LLM transformations
+#@title Code Block 9: Run this select statement to generate output of the LLM transformations for a single record
+%%bigquery result_df
 
-%%bigquery
-CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_model
-REMOTE WITH CONNECTION `us.travel_asst_conn`
-OPTIONS (ENDPOINT = 'gemini-pro');
+SELECT content, text_embedding
+FROM `travel_assistant_ds.california_wine_country_embeddings`
+WHERE content LIKE 'This winery name is Kohlleffel Vineyards%'
+LIMIT 1;
 ```
 **The output should be similar to this:**
-<br/> Job ID 483a4f46-07e7-4ba9-9745-a9fa7a8b7bc4 successfully executed: 100%
+<br/> Job ID 376e771b-b8b6-41dc-aefd-b9f81c861680 successfully executed: 100%
+
+### **Code Block 10**
+
+Now, print the output of the select statement.
+
+```
+#@title Code Block 10: Print the output of the LLM transformations
+import pandas as pd
+import textwrap
+
+# Set pandas display options to avoid truncation
+pd.set_option('display.max_colwidth', None)
+
+# Print 'content' column (top and left justified, with proper spacing and wrapping)
+print("Content:\n")
+
+# Replace <br> tags with spaces and wrap the content manually to a reasonable width (e.g., 80 characters per line)
+clean_content = result_df['content'].iloc[0].replace('<br>', ' ')  # Replace <br> with a space
+wrapped_content = textwrap.fill(clean_content, width=80)
+print(wrapped_content)
+
+# Add a separator for clarity
+print("\n" + "-"*80 + "\n")
+
+# Print 'text_embedding' column (top and left justified)
+print("Text_Embedding:\n")
+print(result_df['text_embedding'].iloc[0])  # Print first row's 'text_embedding'
+```
+**The output should be similar to this:**
+
+**Content:**
+
+This winery name is Kohlleffel Vineyards. California wine region: This winery is
+located in California's North Coast wine region, spanning Sonoma, Napa,
+Mendocino, and Lake counties. The North Coast is a celebrated viticultural
+paradise. Characterized by its diverse terroirs, from the coastal breezes to the
+inland hills, this region yields a wide range of grape varietals, including its
+renowned Cabernet Sauvignon and Sauvignon Blanc and elegant coastal Pinot Noirs
+and Chardonnays, embodying the essence of California winemaking. The AVA
+Appellation is the Sonoma Coast. The website associated with the winery is
+https://kohlleffelvineyards.com. Price Range: medium range. Tasting Room Hours:
+24 x 7...
+
+**Text_Embedding:**
+
+0.03821619  0.05215483 -0.03741358  0.00874872  0.03864389  0.0241658
+0.03700958 -0.00570941 -0.04640496  0.02133269  0.01968173  0.05466348
+-0.00195844  0.01548036  0.07116827 -0.02989442  0.01493446  0.06761404
+-0.04398699 -0.02521998 -0.02368315 -0.0490068   0.0152873  -0.06923058
+0.01284278 -0.07185011  0.00750731 -0.00983331  0.01127757 -0.05489314
+0.07358457  0.00205145 -0.01487004 -0.01827036 -0.01846506  0.01059951
+0.06516002 -0.00390975  0.03528809 -0.04468951  0.00236333  0.0712541
+-0.06551971  0.05187486 -0.017887   -0.05857743 -0.0337937   0.05416118
 
 ## STEP 6: Build the Gradio Application (the travel assistant)
 
@@ -269,10 +323,13 @@ from IPython.display import display, Markdown, Latex
 ```
 
 > ### NOTE - For the next step, you will need to update several parameters to be specific to your environment:
-PROJECT: Your Project ID
-BQ_TABLE: The name of the table you created for storing the vector embeddings:
+
+**PROJECT:** Your Project ID
+
+<br/> **BQ_TABLE:** The name of the table you created for storing the vector embeddings:
 <br/> Project Id.travel_assistant_ds.travel_asst_embed_model
-BQ_MODEL: The name of the model you created for connecting to the text embedding endpoint:
+
+<br/> **BQ_MODEL:** The name of the model you created for connecting to the text embedding endpoint:
 <br/> Project Id.travel_assistant_ds.travel_asst_embed_model
 
 ### **Code Block 3**
