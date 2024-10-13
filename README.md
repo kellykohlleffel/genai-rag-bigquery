@@ -35,7 +35,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 * Open a new Python notebook name it "BigQuery Notebook" in the BigQuery Studio Console by clicking the down arrow on the Query Tool Bar and selecting “Python Notebook” and "Enable All" APIs
 * Copy and paste the following code blocks into the BigQuery Notebook
 
-> ### Note - Because this is the first code block that is being executed, it may take up to 60 seconds for the runtime environment to be allocated before the code is executed.  This is a one-time initialization and won’t be required in subsequent steps.
+> ### NOTE - Because this is the first code block that is being executed, it may take up to 60 seconds for the runtime environment to be allocated before the code is executed.  This is a one-time initialization and won’t be required in subsequent steps.
 
 ## **Code Block 1**
 ```
@@ -71,7 +71,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
   $PROJECT.us.travel_asst_conn
 ```
 
-> ### Note - For the next step, you will need the value of the serviceAccountId field, which is the unique email address associated with the Service Account.  If you scroll the output from the previous command all the way to the right, you’ll see the email address. You can easily copy the email address by right-clicking on it and selecting “Copy Email Address”.
+> ### NOTE - For the next step, you will need the value of the serviceAccountId field, which is the unique email address associated with the Service Account.  If you scroll the output from the previous command all the way to the right, you’ll see the email address. You can easily copy the email address by right-clicking on it and selecting “Copy Email Address”.
 
 ## **Code Block 4**
 
@@ -87,6 +87,146 @@ Using the Service Account Email from the previous step, assign the aiplatform.us
   --role='roles/aiplatform.user' \
   --condition=None
 ```
+**The output should be a list of all bindings that were updated and the first line of output should be similar to this:**
+<br/> Updated IAM policy for project [qwiklabs-gcp-02-919b7b91e253]
+
+## **Code Block 5**
+
+Create a new dataset in your BigQuery project.  We will use this dataset in future steps for storing new database objects that we will be creating.
+
+```
+#@title Create BigQuery Dataset for new objects
+
+!bq --location=US mk --dataset \
+--default_table_expiration=0 \
+$PROJECT:travel_assistant_ds
+```
+**The output should be similar to this:**
+<br/> Dataset 'qwiklabs-gcp-02-919b7b91e253:travel_assistant_ds' successfully created
+
+## **Code Block 6**
+
+We’ll create a new model in the dataset that you created in the previous step.  We’ll be using a special type of CREATE MODEL syntax that lets you register a Vertex AI endpoint as a REMOTE MODEL so that you can call it directly from BigQuery.  We’ll use the connection we created earlier, which we already granted permissions to interact with Vertex AI, and we’ll use Gemini Pro as our endpoint.
+
+Later, when we build our app, we will reference this model for sending our query context to Gemini.
+
+```
+#@title Create Remote Model for interacting with Gemini
+
+%%bigquery
+CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_model
+REMOTE WITH CONNECTION `us.travel_asst_conn`
+OPTIONS (ENDPOINT = 'gemini-pro');
+```
+**The output should be similar to this:**
+<br/> Job ID 483a4f46-07e7-4ba9-9745-a9fa7a8b7bc4 successfully executed: 100%
+
+## **Code Block 7**
+
+Create another new model in the dataset that you created previously.  We’ll be using a special type of CREATE MODEL syntax that lets you register a Vertex AI endpoint as a REMOTE MODEL so that you can call it directly from BigQuery.  We’ll use the connection that we created earlier, which we already granted permissions to interact with Vertex AI, and we’ll use a Text Embedding Model as our endpoint.
+
+We will be using this model for creating the vector embeddings for our data, which will be used by our Travel Assistant for Semantic Search.
+
+```
+#@title Create Remote Model for interacting with a Text Embedding Model
+
+%%bigquery
+CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_embed_model
+REMOTE WITH CONNECTION `us.travel_asst_conn`
+OPTIONS (ENDPOINT = 'text-embedding-004');
+```
+**The output should be similar to this:**
+<br/> Job ID 8fc19aeb-2a16-4162-b1a5-93347ad1c4fb successfully executed: 100%
+
+> ### NOTE - For the next step, you will need to replace <your Fivetran dataset name> with the name of the dataset that you specified. Because this query concatenates the data in each row into a single string per row and then converts that data into its vector representation for all 700+ rows in our table, this query can take about a minute to run.
+
+## **Code Block 8**
+
+Now, we will create a new table in the dataset you created in one of the earlier steps.  This table will contain the vector embeddings of our data.  Before creating the embeddings, the columns in the table are concatenated to create a textual description of the winery, which is a more appropriate format for LLMs to work with.
+
+```
+#@title Append Winery Details and Create Search Embeddings
+#Replace <Your Fivetran Dataset Name> with the name of the dataset that you specified
+#when setting up your BigQuery destination in Fivetran
+#For Example: lastname_agriculture
+%%bigquery
+
+#Concatenate the columns in the california_wine_country_visits table into a more LLM-friendly format
+#and store them in a temporary table
+CREATE TEMPORARY TABLE winery_text AS
+SELECT CONCAT('This winery name is ', IFNULL(WINERY_OR_VINEYARD, ' Name is not known')
+      , '. California wine region: ', IFNULL(CA_WINE_REGION, 'unknown'), ''
+      , ' The AVA Appellation is the ', IFNULL(AVA_APPELLATION_SUB_APPELLATION, 'unknown'), '.'
+      , ' The website associated with the winery is ', IFNULL(WEBSITE, 'unknown'), '.'
+      , ' Price Range: ', IFNULL(PRICE_RANGE, 'unknown'), '.'
+      , ' Tasting Room Hours: ', IFNULL(TASTING_ROOM_HOURS, 'unknown'), '.'
+      , ' Are Reservations Required or Not: ', IFNULL(RESERVATION_REQUIRED, 'unknown'), '.'
+      , ' Winery Description: ', IFNULL(WINERY_DESCRIPTION, 'unknown'), ''
+      , ' The Primary Varietals this winery offers: ', IFNULL(PRIMARY_VARIETALS, 'unknown'), '.'
+      , ' Thoughts on the Tasting Room Experience: ', IFNULL(TASTING_ROOM_EXPERIENCE, 'unknown'), '.'
+      , ' Amenities: ', IFNULL(AMENITIES, 'unknown'), '.'
+      , ' Awards and Accolades: ', IFNULL(AWARDS_AND_ACCOLADES, 'unknown'), '.'
+      , ' Distance Travel Time considerations: ', IFNULL(DISTANCE_AND_TRAVEL_TIME, 'unknown'), '.'
+      , ' User Rating: ', IFNULL(USER_RATING, 'unknown'), '.'
+      , ' The Secondary Varietals for this winery: ', IFNULL(SECONDARY_VARIETALS, 'unknown'), '.'
+      , ' Wine Styles: ', IFNULL(WINE_STYLES, 'unknown'), '.'
+      , ' Events and Activities: ', IFNULL(EVENTS_AND_ACTIVITIES, 'unknown'), '.'
+      , ' Sustainability Practices: ', IFNULL(SUSTAINABILITY_PRACTICES, 'unknown'), '.'
+      , ' Social Media Channels: ', IFNULL(SOCIAL_MEDIA, 'unknown'), ''
+      , ' Address: ', IFNULL(ADDRESS, 'unknown'), ''
+      , ' City: ', IFNULL(CITY, 'unknown'), ''
+      , ' State: ', IFNULL(STATE, 'unknown'), ''
+      , ' ZIP: ', IFNULL(ZIP, 'unknown'), ''
+      , ' Phone: ', IFNULL(PHONE, 'unknown'), ''
+      , ' Winemaker: ', IFNULL(WINEMAKER, 'unknown'), ''
+      , ' Did Kelly Kohlleffel recommend this winery?: ', IFNULL(KELLY_KOHLLEFFEL_RECOMMENDED, 'unknown'), ''
+
+
+     ) AS winery_information
+ FROM
+     <Your Fivetran Dataset Name>.california_wine_country_visits;
+
+
+#Create text embeddings from our concatenated wine country data and
+#store it in a new table
+CREATE OR REPLACE TABLE travel_assistant_ds.california_wine_country_embeddings AS
+SELECT *
+FROM ML.GENERATE_TEXT_EMBEDDING(
+     MODEL `travel_assistant_ds.travel_asst_embed_model`,
+     ( select winery_information as content
+       from winery_text
+     ),
+     STRUCT(TRUE AS flatten_json_output)
+);
+```
+**The output should be similar to this:**
+<br/> Job ID 68295311-d637-47ab-a5af-1e5960b45948 successfully executed: 100%
+
+## **Code Block 9**
+
+Now let's check out the output of those LLM transformations.
+
+```
+#@title Create Remote Model for interacting with Gemini
+
+%%bigquery
+CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_model
+REMOTE WITH CONNECTION `us.travel_asst_conn`
+OPTIONS (ENDPOINT = 'gemini-pro');
+```
+**The output should be similar to this:**
+<br/> Job ID 483a4f46-07e7-4ba9-9745-a9fa7a8b7bc4 successfully executed: 100%
+
+
+
+
+
+
+
+
+
+
+
 
 ### STEP 3: Transform the new structured dataset into a single string to simulate an unstructured document
 * Open a New Worksheet in **Snowflake Snowsight** (left gray navigation under Projects)
