@@ -322,7 +322,7 @@ from vertexai import generative_models
 from IPython.display import display, Markdown, Latex
 ```
 
-> ### NOTE - For the next step, you will need to update several parameters to be specific to your environment:
+> ## NOTE - For the next step, you will need to update several parameters to be specific to your environment:
 
 
 **Update the PROJECT ID:** Your Project ID
