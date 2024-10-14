@@ -1,7 +1,7 @@
 # :wine_glass: Create a wine country travel assistant with Fivetran, Google BigQuery, and Google Vertex AI
 ## Scripts and code for the Fivetran + Google BigQuery RAG-based, Gen AI Hands on Lab (60 minutes)
 
-This repo provides the high-level steps to create a RAG-based, Gen AI travel assistant using Fivetran and Google BigQuery (detailed instructions are in the lab guide provided by your lab instructor). The required transformation scripts and the required Gradio code are both included. This repo is the "easy button" to copy/paste the transformations and the code. If you have any issues with copy/paste, you can download the code [here](https://github.com/kellykohlleffel/genai-rag-snowflake/archive/refs/heads/main.zip).
+This repo provides the high-level steps to create a RAG-based, Gen AI travel assistant using Fivetran and Google BigQuery (detailed instructions are in the lab guide provided by your lab instructor). The required transformation scripts and the required Gradio code are both included. This repo is the "easy button" to copy/paste the transformations and the code. If you have any issues with copy/paste, you can download the code [here](https://github.com/kellykohlleffel/genai-rag-bigquery/archive/refs/heads/main.zip).
 
 > ## IMPORTANT - STEP 1: This lab requires you to sign in to Google Cloud CE Qwiklabs Account and a Fivetran Account
 * These will both be provided by the lab instructor
