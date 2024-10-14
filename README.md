@@ -605,7 +605,7 @@ demo.launch(debug=True)
 
 ```
 
-> ## Click on the gradio.live URL
+> ## Click on the gradio.live URL in the output from the code block above
 
 ### Step 7: Have some fun checking out the travel assistant features and creating prompts for unique visits using RAG
 * Test the Gradio application with your own prompts or check out the sample prompts in the lab guide
