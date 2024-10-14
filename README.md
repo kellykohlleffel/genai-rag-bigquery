@@ -612,6 +612,6 @@ demo.launch(debug=True)
 
 ### Fivetran + Google BigQuery California Wine Country Visit Assistant
 
-![Travel Assistant Screenshot](./images/2024-10-10%20Streamlit%20-%20Travel%20Assistant.png)
+![Travel Assistant Screenshot](images/Fivetran%20+%20BigQuery%20+%20Vertex%20+%20Gradio%20-%20Travel%20Assistant.png)
 
 -----
