@@ -18,6 +18,9 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 * **Fivetran Destination**: Use the new destination you just created
 * **Schema name**: yourlastname 
 * **Host**: 34.94.122.157 **(see the lab guide for credentials)**
+```
+34.94.122.157
+```
 * **Schema**: agriculture
 * **Table**: california_wine_country_visits
 
