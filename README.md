@@ -45,7 +45,7 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 #@title BigQuery Config - Code Block 1: Set Project Id Environment Variable
 #Replace <Your Project ID> with your own Project Id
 
-%env PROJECT=<Your Project Id
+%env PROJECT=<Your Project Id>
 ```
 
 **The output should be similar to this:**
