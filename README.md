@@ -335,7 +335,7 @@ BQ_TABLE = "travel_assistant_ds.california_wine_country_embeddings" #@param {typ
 BQ_MODEL = "travel_assistant_ds.travel_asst_embed_model"#@param {type:"string"}
 BQ_NUMBER_OF_RESULTS =  50 #@param {type:"number"}
 #Maximium distance between vectors
-THRESHOLD = 0.9  #@param {type:"number"}
+THRESHOLD = 0.92  #@param {type:"number"}
 
 #Set initialization paramters based on the settings that you specified
 aiplatform.init(project=PROJECT, location=LOCATION)
