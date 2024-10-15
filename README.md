@@ -255,7 +255,7 @@ https://kohlleffelvineyards.com. Price Range: medium range. Tasting Room Hours:
 This Code Block will install the Gradio software and the IPython interpreter.  
 
 ```
-#@title Wine Coutnry App - Code Block 1: Dependency installation
+#@title Wine Country App - Code Block 1: Dependency installation
 
 #Install the Open source Python Framework that will be used to create the
 #front end for our application
