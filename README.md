@@ -636,6 +636,6 @@ Plan an incredible 2 day trip to california wine country. I want to visit 2 wine
 
 ### Fivetran + Google BigQuery and Vertex AI California Wine Country Visit Assistant
 
-![Travel Assistant Screenshot](images/Fivetran%20+%20BigQuery%20+%20Vertex%20+%20Gradio%20-%20Travel%20Assistant.png)
+![Travel Assistant Screenshot](images/20241015_wine_country_concierge.png)
 
 -----
