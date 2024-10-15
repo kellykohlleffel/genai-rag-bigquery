@@ -593,7 +593,7 @@ with gr.Blocks() as demo:
    sub_btn = gr.Button(value="Submit")
    clear = gr.ClearButton([msg, chatbot,state])
    with gr.Row():
-      use_bq = gr.Checkbox(label="Use BigQuery", value=True)
+      use_bq = gr.Checkbox(label="Use RAG and the Fivetran dataset moved into BigQuery", value=True)
       use_gs = gr.Checkbox(label="Use Google Search for Grounding")
 
 
