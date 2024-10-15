@@ -519,7 +519,7 @@ You are a friendly California wine tourism expert helping visitors in the Califo
 
 It is very important that you NEVER make up information. Always leverage the content provided by the database search, if the answer is not in the context, don't make it up, just say I don't know.
 
-Always optimize for providing and answer, request more details only if the user requests different information.
+Always optimize for providing an answer, request more details only if the user requests different information.
 """
 
 template = """
