@@ -35,25 +35,28 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 
 * Before our Gradio application can interact with the Gemini Foundation Model for responding to our travel inquiries, there are a few configuration steps that we need to take to allow the code to interact with Gemini.
 * We’ll use a Python notebook for our configuration. BigQuery Studio now supports Python Notebooks, which will be ideal for our use case because they support the authoring and execution of code.  The code can be linux commands, python code or BigQuery SQL commands, which is perfect for our use case.  
-* Open a new Python notebook name it "BigQuery Notebook" in the BigQuery Studio Console by clicking the down arrow on the Query Tool Bar and selecting “Python Notebook” and "Enable All" APIs
+* Open a new Python notebook name it **BigQuery Config** in the BigQuery Studio Console by clicking the down arrow on the Query Tool Bar and selecting “Python Notebook” and "Enable All" APIs
 * Copy and paste the following code blocks into the BigQuery Notebook
 
 > ### NOTE - Because this is the first code block that is being executed, it may take up to 60 seconds for the runtime environment to be allocated before the code is executed.  This is a one-time initialization and won’t be required in subsequent steps.
 
-### **Code Block 1**
+### **BigQuery Config - Code Block 1**
 ```
-#@title Code Block 1: Set Project Id Environment Variable
+#@title BigQuery Config - Code Block 1: Set Project Id Environment Variable
 #Replace <Your Project ID> with your own Project Id
 
-%env PROJECT=<Your Project Id>
+%env PROJECT=<Your Project Id
 ```
 
 **The output should be similar to this:**
 <br/> env: PROJECT=qwiklabs-gcp-02-1c0d9f2f41cb
 
-### **Code Block 2**
+### **BigQuery Config - Code Block 2**
+
+A Google Cloud Resource Connection is a connection to authorize access to other Google Cloud resources from within BigQuery.  For our lab, we will be using this connection in future steps to access Vertex AI.
+
 ```
-#@title Code Block 2: Create Cloud Resource Connection
+#@title BigQuery Config - Code Block 2: Create Cloud Resource Connection
 
 !bq mk \
   --connection \
@@ -65,9 +68,14 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 **The output should be similar to this:**
 <br/> Connection 203414464784.us.travel_asst_conn successfully created
 
-### **Code Block 3**
+### **BigQuery Config - Code Block 3**
+
+When the Cloud Resource Connection was created in the previous step, a Service Account associated with the connection was also created.  A Service Account is a special type of account that is used by an application or a workload, rather than an actual human user. When connecting to external services, the Service Account must have been granted sufficient privileges to interact with the external service.  In order to grant the necessary permissions to the Service Account, we must first retrieve the Service Account ID associated with the Service Account, which is a unique email address.
+
+To access the details for the connection that you just created, create a new Code Block and paste in the following code. Execute the code block.
+
 ```
-#@title Code Block 3: Retrieve Details for the new Cloud Resource Connection
+#@title BigQuery Config - Code Block 3: Retrieve Details for the new Cloud Resource Connection
 
 !bq show \
   --format=json --connection \
@@ -76,12 +84,12 @@ This repo provides the high-level steps to create a RAG-based, Gen AI travel ass
 
 > ### NOTE - For the next step, you will need the value of the serviceAccountId field, which is the unique email address associated with the Service Account.  If you scroll the output from the previous command all the way to the right, you’ll see the email address. You can easily copy the email address by right-clicking on it and selecting “Copy Email Address”.
 
-### **Code Block 4**
+### **BigQuery Config - Code Block 4**
 
 Using the Service Account Email from the previous step, assign the aiplatform.user role to the Service Account.  This allows the Service Account to access Vertex AI services.
 
 ```
-#@title Code Block 4: Give Service Account Permissions for Vertex AI
+#@title BigQuery Config - Code Block 4: Give Service Account Permissions for Vertex AI
 # Replace <Service Account Email From The Previous Step> with your Service Account Id
 
 
@@ -93,12 +101,12 @@ Using the Service Account Email from the previous step, assign the aiplatform.us
 **The output should be a list of all bindings that were updated and the first line of output should be similar to this:**
 <br/> Updated IAM policy for project [qwiklabs-gcp-02-919b7b91e253]
 
-### **Code Block 5**
+### **BigQuery Config - Code Block 5**
 
 Create a new dataset in your BigQuery project.  We will use this dataset in future steps for storing new database objects that we will be creating.
 
 ```
-#@title Code Block 5: Create BigQuery Dataset for new objects
+#@title BigQuery Config - Code Block 5: Create BigQuery Dataset for storing new database objects
 
 !bq --location=US mk --dataset \
 --default_table_expiration=0 \
@@ -107,31 +115,14 @@ $PROJECT:travel_assistant_ds
 **The output should be similar to this:**
 <br/> Dataset 'qwiklabs-gcp-02-919b7b91e253:travel_assistant_ds' successfully created
 
-### **Code Block 6**
+### **BigQuery Config - Code Block 6**
 
-We’ll create a new model in the dataset that you created in the previous step.  We’ll be using a special type of CREATE MODEL syntax that lets you register a Vertex AI endpoint as a REMOTE MODEL so that you can call it directly from BigQuery.  We’ll use the connection we created earlier, which we already granted permissions to interact with Vertex AI, and we’ll use Gemini Pro as our endpoint.
-
-Later, when we build our app, we will reference this model for sending our query context to Gemini.
-
-```
-#@title Code Block 6: Create Remote Model for interacting with Gemini
-
-%%bigquery
-CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_model
-REMOTE WITH CONNECTION `us.travel_asst_conn`
-OPTIONS (ENDPOINT = 'gemini-pro');
-```
-**The output should be similar to this:**
-<br/> Job ID 483a4f46-07e7-4ba9-9745-a9fa7a8b7bc4 successfully executed: 100%
-
-### **Code Block 7**
-
-Create another new model in the dataset that you created previously.  We’ll be using a special type of CREATE MODEL syntax that lets you register a Vertex AI endpoint as a REMOTE MODEL so that you can call it directly from BigQuery.  We’ll use the connection that we created earlier, which we already granted permissions to interact with Vertex AI, and we’ll use a Text Embedding Model as our endpoint.
+Create another new model in the dataset that you created previously. We’ll be using a special type of CREATE MODEL syntax that lets you register a Vertex AI endpoint as a REMOTE MODEL so that you can call it directly from BigQuery. We’ll use the connection that we created earlier, which we already granted permissions to interact with Vertex AI, and we’ll use a Text Embedding Model as our endpoint.
 
 We will be using this model for creating the vector embeddings for our data, which will be used by our Travel Assistant for Semantic Search.
 
 ```
-#@title Code Block 7: Create Remote Model for interacting with a Text Embedding Model
+#@title Code Block 6: Create Remote Model for interacting with a Text Embedding Model
 
 %%bigquery
 CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_embed_model
@@ -139,20 +130,27 @@ REMOTE WITH CONNECTION `us.travel_asst_conn`
 OPTIONS (ENDPOINT = 'text-embedding-004');
 ```
 **The output should be similar to this:**
-<br/> Job ID 8fc19aeb-2a16-4162-b1a5-93347ad1c4fb successfully executed: 100%
+<br/> Job ID 483a4f46-07e7-4ba9-9745-a9fa7a8b7bc4 successfully executed: 100%
 
-> ### NOTE - For the next step, you will need to replace <your Fivetran dataset name> with the name of the dataset that you specified. Because this query concatenates the data in each row into a single string per row and then converts that data into its vector representation for all 700+ rows in our table, this query can take about a minute to run.
-
-### **Code Block 8**
+### **BigQuery Config - Code Block 7**
 
 Now, we will create a new table in the dataset you created in one of the earlier steps.  This table will contain the vector embeddings of our data.  Before creating the embeddings, the columns in the table are concatenated to create a textual description of the winery, which is a more appropriate format for LLMs to work with.
 
+> ### NOTE - For this step, you will need to replace <your Fivetran dataset name> with the name of the dataset that you specified. Because this query concatenates the data in each row into a single string per row and then converts that data into its vector representation for all 700+ rows in our table, this query can take about a minute to run.
+
 ```
-#@title Code Block 8: Append Winery Details and Create Search Embeddings
+#@title BigQuery Config - Code Block 7: Append Winery Details and Create Search Embeddings
 #Replace <Your Fivetran Dataset Name> with the name of the dataset that you specified
 #when setting up your BigQuery destination in Fivetran
 #For Example: lastname_agriculture
 %%bigquery
+
+#Change the value of <Your Fivetran Dataset Name> to the name of the dataset that contains the table
+#california_wine_country_visits. The dataset name should be <Your Last Name>_agriculture
+#For Example:
+# SET @@dataset_id = 'kohlleffel_agriculture'
+
+SET @@dataset_id = '<Your Fivetran Dataset Name>';
 
 #Concatenate the columns in the california_wine_country_visits table into a more LLM-friendly format
 #and store them in a temporary table
@@ -184,14 +182,12 @@ SELECT CONCAT('This winery name is ', IFNULL(WINERY_OR_VINEYARD, ' Name is not k
       , ' Winemaker: ', IFNULL(WINEMAKER, 'unknown'), ''
       , ' Did Kelly Kohlleffel recommend this winery?: ', IFNULL(KELLY_KOHLLEFFEL_RECOMMENDED, 'unknown'), ''
 
-
      ) AS winery_information
  FROM
-     <Your Fivetran Dataset Name>.california_wine_country_visits;
-
+     california_wine_country_visits;
 
 #Create text embeddings from our concatenated wine country data and
-#store it in a new table
+#store it in a new BigQuery table
 CREATE OR REPLACE TABLE travel_assistant_ds.california_wine_country_embeddings AS
 SELECT *
 FROM ML.GENERATE_TEXT_EMBEDDING(
@@ -205,49 +201,22 @@ FROM ML.GENERATE_TEXT_EMBEDDING(
 **The output should be similar to this:**
 <br/> Job ID 68295311-d637-47ab-a5af-1e5960b45948 successfully executed: 100%
 
-### **Code Block 9**
+### **BigQuery Config - Code Block 8**
 
 Now, let's check out the output of those LLM transformations.
 
 ```
-#@title Code Block 9: Run this select statement to generate output of the LLM transformations for a single record
-%%bigquery result_df
+#@title BigQuery Config - Code Block 8: Run this select statement to generate output of the LLM transformations for a single record
+%%bigquery
 
 SELECT content, text_embedding
 FROM `travel_assistant_ds.california_wine_country_embeddings`
 WHERE content LIKE 'This winery name is Kohlleffel Vineyards%'
 LIMIT 1;
 ```
-**The output should be similar to this:**
-<br/> Job ID 376e771b-b8b6-41dc-aefd-b9f81c861680 successfully executed: 100%
 
-### **Code Block 10**
+> ### Click on the graph icon and scroll down.
 
-Now, print the output of the select statement.
-
-```
-#@title Code Block 10: Print the output of the LLM transformations
-import pandas as pd
-import textwrap
-
-# Set pandas display options to avoid truncation
-pd.set_option('display.max_colwidth', None)
-
-# Print 'content' column (top and left justified, with proper spacing and wrapping)
-print("Content:\n")
-
-# Replace <br> tags with spaces and wrap the content manually to a reasonable width (e.g., 80 characters per line)
-clean_content = result_df['content'].iloc[0].replace('<br>', ' ')  # Replace <br> with a space
-wrapped_content = textwrap.fill(clean_content, width=80)
-print(wrapped_content)
-
-# Add a separator for clarity
-print("\n" + "-"*80 + "\n")
-
-# Print 'text_embedding' column (top and left justified)
-print("Text_Embedding:\n")
-print(result_df['text_embedding'].iloc[0])  # Print first row's 'text_embedding'
-```
 **The output should be similar to this:**
 
 **Content:**
@@ -278,40 +247,58 @@ https://kohlleffelvineyards.com. Price Range: medium range. Tasting Room Hours:
 
 * We’ll be building our application using Gradio, which is an open-source Python package that allows you to quickly build a User Interface that can be embedded in a Python notebook or presented as a web page.
 * We’ll use a new Python notebook for our Gradio application.   
-* Open a new Python notebook name it "Gradio Notebook" in the BigQuery Studio Console by clicking the down arrow on the Query Tool Bar and selecting “Python Notebook” and "Enable All" APIs
+* Open a new Python notebook name it "Wine Country App" in the BigQuery Studio Console by clicking the down arrow on the Query Tool Bar and selecting “Python Notebook” and "Enable All" APIs
 * Copy and paste the following code blocks into the Gradio Notebook
 
-### **Code Block 1**
+### **Wine Country App - Code Block 1**
 
-This Code Block will install the Gradio software and the IPython interpreter.  Once the software is installed, the environment is restarted so that it recognizes the new software.
-
-Because this is the first code block being executed, it may take up to 60 seconds for the runtime environment to be allocated before the code is executed.  This is a one-time initialization and won’t be required in subsequent steps.
+This Code Block will install the Gradio software and the IPython interpreter.  
 
 ```
-#@title Code Block 1: Dependency installation
+#@title Wine Coutnry App - Code Block 1: Dependency installation
 
+#Install the Open source Python Framework that will be used to create the
+#front end for our application
 !pip install gradio
 
-#Automatically restart kernel after installs so that your environment can access the new packages
 import IPython
+```
+
+**The output should be similar to this:**
+<br/> Successfully installed …
+
+### **Wine Country App - Code Block 2**
+
+This code will restart the environment so that future code blocks will be able to access the software that we installed in the previous code block.  
+
+**When the environment is restarted, you will receive an error message similar to this.:**
+<br/> Your session crashed for an unknown reason. View runtime logs.
+<br/> Note - you can safely close this error message and continue.
+
+```
+#@title Wine Country App - Code Block 2: Restart the application
+
+#Automatically restart kernel after installs so that your environment can access the new packages
+#You will get an error message saying that your application has crashed.  It is safe to ignore this.
 
 app = IPython.Application.instance()
 app.kernel.do_shutdown(True)
 ```
 
-### **Code Block 2**
+### **Wine Country App - Code Block 3**
 
-This code block will...
+This code block loads all of the Python Modules that will be required by our application.  
 
 ```
-#@title Code Block 2: Import modules
+#@title Wine Country App - Code Block 3: Import modules
 
+#Import all of the Python modules that will be used in our application
 import time
 from datetime import date
 import json
 import re
 
-#bq
+#BigQuery Module
 from google.cloud import bigquery
 
 # Vertex AI
@@ -323,61 +310,52 @@ from vertexai import generative_models
 
 #Iphython for prettier printing
 from IPython.display import display, Markdown, Latex
-```
-
-> ## NOTE - For the next step, you will need to update several parameters to be specific to your environment before running the code block:
-
-### **Code Block 3**
-
-This code block will...
 
 ```
-#@title Code Block 3: Parameters
 
+### **Wine Country App - Code Block 4**
 
-PROJECT = "iamtests-315719"  # @param {type:"string"}
+> ## NOTE - This is a special type of Code Block which presents user customizable parameters that are used by our code.  We need to properly populate one of these parameters before executing the Code Block.
+
+> **Update the PROJECT ID:** Your Project ID
+
+```
+#@title Wine Country App - Code Block 4: Parameters
+#Configurable parameters that can be set specifically for your application
+
+PROJECT = "<Replace With Your Project ID>"  # @param {type:"string"}
 LOCATION = "us-central1" # @param {type:"string"}
-
 
 MODEL = "gemini-1.5-pro-001" #@param ["gemini-1.5-pro-001","gemini-1.5-flash-001"]
 TEMPERATURE = 1 #@param {type:"number"}
 TOP_P = 1 #@param {type:"number"}
 MAX_OUTPUT_TOKENS = 8192 #@param {type:"number"}
 
-
-BQ_TABLE = "iamtests-315719.ragdemo.single_string_winery_review_vector" #@param {type:"string"}
-BQ_MODEL = "project_beyondsql_genai_textembedding.llm_embedding_model"#@param {type:"string"}
-BQ_NUMBER_OF_RESULTS =  40 #@param {type:"number"}
+BQ_TABLE = "travel_assistant_ds.california_wine_country_embeddings" #@param {type:"string"}
+BQ_MODEL = "travel_assistant_ds.travel_asst_embed_model"#@param {type:"string"}
+BQ_NUMBER_OF_RESULTS =  50 #@param {type:"number"}
 #Maximium distance between vectors
 THRESHOLD = 0.9  #@param {type:"number"}
 
-
+#Set initialization paramters based on the settings that you specified
 aiplatform.init(project=PROJECT, location=LOCATION)
 model = generative_models.GenerativeModel(MODEL)
 
-
-#authenticate
+#Authenticate using your Google Cloud User
 from google.colab import auth as google_auth
 google_auth.authenticate_user()
-```
-> **Update the PROJECT ID:** Your Project ID
-
-> <br/> **Update the BQ_TABLE:** The name of the table you created for storing the vector embeddings:
-```
-Project ID.travel_assistant_ds.california_wine_country_embeddings
-```
-> <br/> **Update the BQ_MODEL:** The name of the model you created for connecting to the text embedding endpoint:
-```
-Project ID.travel_assistant_ds.travel_asst_embed_model
-```
-
-### **Code Block 4**
-
-This code block will...
 
 ```
-#@title Code Block 4: Functions
 
+### **Wine Country App - Code Block 5**
+
+This Code Block defines all of the utility functions used for executing queries interactively and via the user interface.  The interactions between the application, BigQuery, and Gemini are defined here.
+
+```
+#@title Wine Country App - Code Block 5: Functions
+
+#Creates embeddings via the embedding model, executes the query and returns
+#the results
 def query_bigquery(query):
  bq_template = f"""
  SELECT query.query,distance, base.content
@@ -400,6 +378,9 @@ def query_bigquery(query):
  except Exception as e:
      print(e)
 
+#Query BigQuery and populate the context
+#This is used when running queries interactively rather
+#than through the User Interface
 def get_context(query):
  bq_context = query_bigquery(query)
  if len(bq_context) < 1:
@@ -412,6 +393,9 @@ def get_context(query):
      counter = counter+1
  return(context)
 
+#Query BigQuery and populate the context.
+#This is used when running through the User Interface
+#when we need to recognize which flags have been set.
 def get_context_with_params(query,use_bq):
  if use_bq == True:
    bq_context = query_bigquery(query)
@@ -427,6 +411,7 @@ def get_context_with_params(query,use_bq):
    context = ""
  return(context)
 
+#Take the context and the history and send it to Gemini for inference
 def process_llm(model, prompt):
  try:
    responses = model.generate_content(
@@ -445,6 +430,8 @@ def process_llm(model, prompt):
  except Exception as e:
    print(e)
 
+#Take the context and the history and send it to Gemini for inference.
+#Set the parameter indicating the Google Search should be used for grounding.
 def process_llm_grounding(model, prompt):
  try:
    tool = generative_models.Tool.from_google_search_retrieval(
@@ -466,6 +453,66 @@ def process_llm_grounding(model, prompt):
      return(f"Content has been blocked for {responses.candidates[0].finish_reason.name} reasons.")
  except Exception as e:
    print(e)
+
+#Orchestrate the query based on the flags that have been set.
+#This is used when running queries interactively rather
+#than through the User Interface
+
+def ask_question(prompt, model, history):
+ #Execute a BQ query in case there is no history
+ if history == "":
+   context = get_context(prompt)
+   if context == "":
+     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
+     answer = process_llm(model, formatted_prompt)
+     return(answer, "")
+   else:
+     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
+     answer = process_llm(model, formatted_prompt)
+     history = f"{formatted_prompt}\n\n{answer}\n"
+     return(answer, history)
+ else:
+   formatted_prompt = template.format(history=history, context="", prompt=prompt)
+   answer = process_llm(model, formatted_prompt)
+   history = f"{formatted_prompt}\n\n{answer}\n"
+   return(answer, history)
+
+#Orchestrate the query based on the flags that have been set.
+#This is used when running through the User Interface
+#when we need to recognize which flags have been set.
+def ask_question_with_params(prompt, model, history,use_bq, use_gs):
+ #Execute a BQ query in case there is no history
+ if history == "":
+   context = get_context_with_params(prompt,use_bq)
+   if context == "":
+     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
+     if use_gs == True:
+       answer = process_llm_grounding(model, formatted_prompt)
+     else:
+       answer = process_llm(model, formatted_prompt)
+     return(answer, "")
+   else:
+     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
+     answer = process_llm(model, formatted_prompt)
+     history = f"{formatted_prompt}\n\n{answer}\n"
+     return(answer, history)
+ else:
+   formatted_prompt = template.format(history=history, context="", prompt=prompt)
+   answer = process_llm(model, formatted_prompt)
+   history = f"{formatted_prompt}\n\n{answer}\n"
+   return(answer, history)
+
+```
+
+### **Wine Country App - Code Block 6**
+
+This Code Block sets our system prompt, which explains to the LLM what we are trying to accomplish and some guidelines to use when formulating responses.  Send this prompt to the LLM to initialize it, which must be done before sending the first query.
+
+```
+#@title Wine Country App - Code Block 6: Model Initialization
+
+#Initialize the model with the system instructions
+#The model needs to be initialized prior to being used
 
 system_prompt = """
 You are a friendly California wine tourism expert helping visitors in the California wine country who want an incredible visit and tasting experience.
@@ -493,82 +540,34 @@ This is what the user asked:
 Answer:
 """
 
-def ask_question(prompt, model, history):
- #Execute a BQ query in case there is no history
- if history == "":
-   context = get_context(prompt)
-   if context == "":
-     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
-     answer = process_llm(model, formatted_prompt)
-     return(answer, "")
-   else:
-     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
-     answer = process_llm(model, formatted_prompt)
-     history = f"{formatted_prompt}\n\n{answer}\n"
-     return(answer, history)
- else:
-   formatted_prompt = template.format(history=history, context="", prompt=prompt)
-   answer = process_llm(model, formatted_prompt)
-   history = f"{formatted_prompt}\n\n{answer}\n"
-   return(answer, history)
-
-def ask_question_with_params(prompt, model, history,use_bq, use_gs):
- #Execute a BQ query in case there is no history
- if history == "":
-   context = get_context_with_params(prompt,use_bq)
-   if context == "":
-     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
-     if use_gs == True:
-       answer = process_llm_grounding(model, formatted_prompt)
-     else:
-       answer = process_llm(model, formatted_prompt)
-     return(answer, "")
-   else:
-     formatted_prompt = template.format(history="This is the first turn", context=context, prompt=prompt)
-     answer = process_llm(model, formatted_prompt)
-     history = f"{formatted_prompt}\n\n{answer}\n"
-     return(answer, history)
- else:
-   formatted_prompt = template.format(history=history, context="", prompt=prompt)
-   answer = process_llm(model, formatted_prompt)
-   history = f"{formatted_prompt}\n\n{answer}\n"
-   return(answer, history)
-
+model = vertexai.generative_models.GenerativeModel(MODEL, system_instruction=[system_prompt])
 ```
 
-### **Code Block 5**
+### **Wine Country App - Code Block 7**
 
-This Code Block will ...
+This basic query is sent to Gemini and is simply used to verify that everything up to this point has been configured correctly.  If everything works as expected, you get a friendly response from Gemini.  It should be similar to this, but may not be exactly the same.
 
-```
-#@title Code Block 5: Initialize models
-INIT_MODEL = vertexai.generative_models.GenerativeModel(MODEL, system_instruction=[system_prompt])
-```
-
-### **Code Block 6**
-
-This Code Block will ...
+<br/> Hi! 👋  How can I help you today? 😊 
 
 ```
-#@title Code Block 6: Quick test 
+#@title Wine Country App - Code Block 7: Test Model Interaction
+
 query = "hi"
 history = ""
 answer, history = ask_question(query,model, history)
 print(answer)
 ```
 
-### **Code Block 7**
+### **Wine Country App - Code Block 8**
 
-This Code Block will ...
+Unlike the other code blocks that we have run, this block continues to run for as long as you want to interact with the Travel Assistant.  Once the User Interface starts, the Play Button changes to a Stop button, which you can press whenever you are done interacting with the Travel Assistant.
 
 ```
-#@title Code Block 7: Gradio App
+#@title Wine Country App - Code Block 8: Gradio App
 import gradio as gr
-
 
 def respond(message, chat_history, history,use_bq, use_gs):
  try:
-
 
    answer, history = ask_question_with_params(message, model,history,use_bq, use_gs)
  except Exception as e:
@@ -577,7 +576,6 @@ def respond(message, chat_history, history,use_bq, use_gs):
  bot_message = answer
  chat_history.append((message, bot_message))
  return "", chat_history, history
-
 
 with gr.Blocks() as demo:
    history = ""
@@ -592,6 +590,7 @@ with gr.Blocks() as demo:
            show_label=False,
            placeholder="Enter your question",)
    state = gr.State(value="")
+   sub_btn = gr.Button(value="Submit")
    clear = gr.ClearButton([msg, chatbot,state])
    with gr.Row():
       use_bq = gr.Checkbox(label="Use BigQuery", value=True)
@@ -599,16 +598,41 @@ with gr.Blocks() as demo:
 
 
    msg.submit(respond, [msg, chatbot, state, use_bq, use_gs], [msg, chatbot, state])
-
+   sub_btn.click(respond, inputs=[msg, chatbot, state, use_bq, use_gs], outputs=[msg, chatbot, state])
 
 demo.launch(debug=True)
 
 ```
 
-> ## Click on the gradio.live URL in the output from the code block above
+> ## Click on the *gradio.live URL* in the output from the code block above to start your Wine Country Visit Assistant in a new tab.
 
-### Step 7: Have some fun checking out the travel assistant features and creating prompts for unique visits using RAG
+## Step 7: Have some fun checking out the travel assistant features and creating prompts for unique visits using RAG
 * Test the Gradio application with your own prompts or check out the sample prompts in the lab guide
+* Control records used for testing RAG include the following and these only exist in the dataset moved with Fivetran from PostgreSQL to BigQuery:
+  * Kohlleffel Vineyards
+  * Millman Estate
+  * Hrncir Family Cellars
+  * Kai Lee Family Cellars
+  * Tony Kelly Pamont Vineyards
+  * Sandell Estates
+
+### Sample Prompts
+
+```
+Tell me about Kohlleffel Vineyards
+```
+
+```
+Tell me about Sandell Estates
+```
+
+```
+Tell me everything you know about Kohlleffel Vineyards and Sandell Estates in bulletized format and highlight anything unusual about each winery or what I can expect when I visit.
+```
+
+```
+Plan an incredible 2 day trip to california wine country. I want to visit 2 wineries on the Sonoma Coast on day 1 including Kohlleffel Vineyards. Be sure to provide detail about Kohlleffel Vineyards and the other winery. On day 2, I want to visit 3 wineries in Napa Valley and be sure to include Sandell Estates as one of the wineries. Provide all detail on Sandell Estates. Also, give me hotel recommendations, restaurant recommendations, other activity recommendations, and clothing recommendations for this time of year. I want to impress the friend that I am traveling with so provide a catchy name for this trip. I will also need you to estimate the total cost of this trip for me with detail on each activity.
+```
 
 ### Fivetran + Google BigQuery California Wine Country Visit Assistant
 
