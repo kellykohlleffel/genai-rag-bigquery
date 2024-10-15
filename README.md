@@ -631,7 +631,7 @@ Tell me everything you know about Kohlleffel Vineyards and Sandell Estates in bu
 ```
 
 ```
-Plan an incredible 2 day trip to california wine country. I want to visit 2 wineries on the Sonoma Coast on day 1 including Kohlleffel Vineyards. Be sure to provide detail about Kohlleffel Vineyards and the other winery. On day 2, I want to visit 3 wineries in Napa Valley and be sure to include Sandell Estates as one of the wineries. Provide all detail on Sandell Estates. Also, give me hotel recommendations, restaurant recommendations, other activity recommendations, and clothing recommendations for this time of year. I want to impress the friend that I am traveling with so provide a catchy name for this trip. I will also need you to estimate the total cost of this trip for me with detail on each activity.
+Plan an incredible 2 day trip to california wine country. I want to visit 2 wineries on the Sonoma Coast on day 1 including Kohlleffel Vineyards. Be sure to provide detail about Kohlleffel Vineyards and the other winery (also describe any dogs on the property). On day 2, I want to visit 3 wineries in Napa Valley and be sure to include Sandell Estates as one of the wineries. Provide all detail on Sandell Estates including describing any dogs on the property. Also, give me hotel recommendations, restaurant recommendations, other activity recommendations, and clothing recommendations for this time of year. I want to impress the friend that I am traveling with so provide a catchy name for this trip. I will also need you to estimate the total cost of this trip for me with detail on each activity.
 ```
 
 ### Fivetran + Google BigQuery California Wine Country Visit Assistant
