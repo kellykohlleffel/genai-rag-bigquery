@@ -92,7 +92,6 @@ Using the Service Account Email from the previous step, assign the aiplatform.us
 #@title BigQuery Config - Code Block 4: Give Service Account Permissions for Vertex AI
 # Replace <Service Account Email From The Previous Step> with your Service Account Id
 
-
 !gcloud projects add-iam-policy-binding $PROJECT \
   --member='serviceAccount:<Service Account Email From The Previous Step>' \
   --role='roles/aiplatform.user' \
@@ -122,7 +121,7 @@ Create another new model in the dataset that you created previously. We’ll be 
 We will be using this model for creating the vector embeddings for our data, which will be used by our Travel Assistant for Semantic Search.
 
 ```
-#@title Code Block 6: Create Remote Model for interacting with a Text Embedding Model
+#@title BigQuery Config - Code Block 6: Create Remote Model for interacting with a Text Embedding Model
 
 %%bigquery
 CREATE OR REPLACE MODEL travel_assistant_ds.travel_asst_embed_model
@@ -145,42 +144,43 @@ Now, we will create a new table in the dataset you created in one of the earlier
 #For Example: lastname_agriculture
 %%bigquery
 
+
 #Change the value of <Your Fivetran Dataset Name> to the name of the dataset that contains the table
 #california_wine_country_visits. The dataset name should be <Your Last Name>_agriculture
 #For Example:
-# SET @@dataset_id = 'kohlleffel_agriculture'
+# SET @@dataset_id = 'sandell_agriculture'
 
 SET @@dataset_id = '<Your Fivetran Dataset Name>';
 
 #Concatenate the columns in the california_wine_country_visits table into a more LLM-friendly format
 #and store them in a temporary table
 CREATE TEMPORARY TABLE winery_text AS
-SELECT CONCAT('This winery name is ', IFNULL(WINERY_OR_VINEYARD, ' Name is not known')
-      , '. California wine region: ', IFNULL(CA_WINE_REGION, 'unknown'), ''
-      , ' The AVA Appellation is the ', IFNULL(AVA_APPELLATION_SUB_APPELLATION, 'unknown'), '.'
-      , ' The website associated with the winery is ', IFNULL(WEBSITE, 'unknown'), '.'
-      , ' Price Range: ', IFNULL(PRICE_RANGE, 'unknown'), '.'
-      , ' Tasting Room Hours: ', IFNULL(TASTING_ROOM_HOURS, 'unknown'), '.'
-      , ' Are Reservations Required or Not: ', IFNULL(RESERVATION_REQUIRED, 'unknown'), '.'
-      , ' Winery Description: ', IFNULL(WINERY_DESCRIPTION, 'unknown'), ''
-      , ' The Primary Varietals this winery offers: ', IFNULL(PRIMARY_VARIETALS, 'unknown'), '.'
-      , ' Thoughts on the Tasting Room Experience: ', IFNULL(TASTING_ROOM_EXPERIENCE, 'unknown'), '.'
-      , ' Amenities: ', IFNULL(AMENITIES, 'unknown'), '.'
-      , ' Awards and Accolades: ', IFNULL(AWARDS_AND_ACCOLADES, 'unknown'), '.'
-      , ' Distance Travel Time considerations: ', IFNULL(DISTANCE_AND_TRAVEL_TIME, 'unknown'), '.'
-      , ' User Rating: ', IFNULL(USER_RATING, 'unknown'), '.'
-      , ' The Secondary Varietals for this winery: ', IFNULL(SECONDARY_VARIETALS, 'unknown'), '.'
-      , ' Wine Styles: ', IFNULL(WINE_STYLES, 'unknown'), '.'
-      , ' Events and Activities: ', IFNULL(EVENTS_AND_ACTIVITIES, 'unknown'), '.'
-      , ' Sustainability Practices: ', IFNULL(SUSTAINABILITY_PRACTICES, 'unknown'), '.'
-      , ' Social Media Channels: ', IFNULL(SOCIAL_MEDIA, 'unknown'), ''
-      , ' Address: ', IFNULL(ADDRESS, 'unknown'), ''
-      , ' City: ', IFNULL(CITY, 'unknown'), ''
-      , ' State: ', IFNULL(STATE, 'unknown'), ''
-      , ' ZIP: ', IFNULL(ZIP, 'unknown'), ''
-      , ' Phone: ', IFNULL(PHONE, 'unknown'), ''
-      , ' Winemaker: ', IFNULL(WINEMAKER, 'unknown'), ''
-      , ' Did Kelly Kohlleffel recommend this winery?: ', IFNULL(KELLY_KOHLLEFFEL_RECOMMENDED, 'unknown'), ''
+SELECT CONCAT('This winery name is ', IFNULL(winery_or_vineyard, ' Name is not known')
+      , '. California wine region: ', IFNULL(ca_wine_region, 'unknown'), ''
+      , ' The AVA Appellation is the ', IFNULL(ava_appellation_sub_appellation, 'unknown'), '.'
+      , ' The website associated with the winery is ', IFNULL(website, 'unknown'), '.'
+      , ' Price Range: ', IFNULL(price_range, 'unknown'), '.'
+      , ' Tasting Room Hours: ', IFNULL(tasting_room_hours, 'unknown'), '.'
+      , ' Are Reservations Required or Not: ', IFNULL(reservation_required, 'unknown'), '.'
+      , ' Winery Description: ', IFNULL(winery_description, 'unknown'), ''
+      , ' The Primary Varietals this winery offers: ', IFNULL(primary_varietals, 'unknown'), '.'
+      , ' Thoughts on the Tasting Room Experience: ', IFNULL(tasting_room_experience, 'unknown'), '.'
+      , ' Amenities: ', IFNULL(amenities, 'unknown'), '.'
+      , ' Awards and Accolades: ', IFNULL(awards_and_accolades, 'unknown'), '.'
+      , ' Distance Travel Time considerations: ', IFNULL(distance_and_travel_time, 'unknown'), '.'
+      , ' User Rating: ', IFNULL(user_rating, 'unknown'), '.'
+      , ' The Secondary Varietals for this winery: ', IFNULL(secondary_varietals, 'unknown'), '.'
+      , ' Wine Styles: ', IFNULL(wine_styles, 'unknown'), '.'
+      , ' Events and Activities: ', IFNULL(events_and_activities, 'unknown'), '.'
+      , ' Sustainability Practices: ', IFNULL(sustainability_practices, 'unknown'), '.'
+      , ' Social Media Channels: ', IFNULL(social_media, 'unknown'), ''
+      , ' Address: ', IFNULL(address, 'unknown'), ''
+      , ' City: ', IFNULL(city, 'unknown'), ''
+      , ' State: ', IFNULL(state, 'unknown'), ''
+      , ' ZIP: ', IFNULL(zip, 'unknown'), ''
+      , ' Phone: ', IFNULL(phone, 'unknown'), ''
+      , ' Winemaker: ', IFNULL(winemaker, 'unknown'), ''
+      , ' Did Kelly Kohlleffel recommend this winery?: ', IFNULL(kelly_kohlleffel_recommended, 'unknown'), ''
 
      ) AS winery_information
  FROM
@@ -304,13 +304,11 @@ from google.cloud import bigquery
 # Vertex AI
 import vertexai
 
-from google.cloud import aiplatform
 from vertexai.language_models import TextEmbeddingModel, TextGenerationModel
 from vertexai import generative_models
 
 #Iphython for prettier printing
 from IPython.display import display, Markdown, Latex
-
 ```
 
 ### **Wine Country App - Code Block 4**
@@ -334,11 +332,11 @@ MAX_OUTPUT_TOKENS = 8192 #@param {type:"number"}
 BQ_TABLE = "travel_assistant_ds.california_wine_country_embeddings" #@param {type:"string"}
 BQ_MODEL = "travel_assistant_ds.travel_asst_embed_model"#@param {type:"string"}
 BQ_NUMBER_OF_RESULTS =  50 #@param {type:"number"}
-#Maximium distance between vectors
+#Maximum distance between vectors
 THRESHOLD = 0.92  #@param {type:"number"}
 
-#Set initialization paramters based on the settings that you specified
-aiplatform.init(project=PROJECT, location=LOCATION)
+#Set initialization parameters based on the settings that you specified
+vertexai.init(project=PROJECT, location=LOCATION)
 model = generative_models.GenerativeModel(MODEL)
 
 #Authenticate using your Google Cloud User
@@ -429,6 +427,7 @@ def process_llm(model, prompt):
      return(f"Content has been blocked for {responses.candidates[0].finish_reason.name} reasons.")
  except Exception as e:
    print(e)
+   return("I'm sorry I had a problem, please try again.")
 
 #Take the context and the history and send it to Gemini for inference.
 #Set the parameter indicating the Google Search should be used for grounding.
@@ -453,11 +452,11 @@ def process_llm_grounding(model, prompt):
      return(f"Content has been blocked for {responses.candidates[0].finish_reason.name} reasons.")
  except Exception as e:
    print(e)
+   return("I'm sorry I had a problem, please try again.")
 
 #Orchestrate the query based on the flags that have been set.
 #This is used when running queries interactively rather
 #than through the User Interface
-
 def ask_question(prompt, model, history):
  #Execute a BQ query in case there is no history
  if history == "":
@@ -560,15 +559,36 @@ print(answer)
 
 ### **Wine Country App - Code Block 8**
 
+This query will rely on data from our BigQuery table to be answered correctly. Sandell Estates is an imaginary winery that was added to the dataset for testing purposes. Gemini won't have any information related to it, nor will Google Search since it only exists in our BigQuery table. An informative response indicates that our interaction with BigQuery is working correctly.
+
+**Here is a snippet of the type of output that you can expect:**
+
+Sandell Estates, located at 300 Spanish Flat Loop Rd, Spanish Flat, CA 94558, is a fantastic winery situated in the heart of Napa Valley.
+
+Here's what makes them special:
+
+* Winery Experience: Sandell Estates offers a unique blend of relaxation and adventure. Imagine sipping award-winning Sauvignon Blanc or Pinot Noir in a lakeside lounge chair, then kayaking or trying their thrilling rope swings over Lake Berryessa.
+
+```
+#@title Wine Country App - Code Block 8: Test BigQuery Interaction
+
+query = "Tell me everything you know about Sandell Estates"
+history = ""
+answer, history = ask_question(query,model, history)
+print(answer)
+```
+
+### **Wine Country App - Code Block 9**
+
 Unlike the other code blocks that we have run, this block continues to run for as long as you want to interact with the Travel Assistant.  Once the User Interface starts, the Play Button changes to a Stop button, which you can press whenever you are done interacting with the Travel Assistant.
 
 ```
-#@title Wine Country App - Code Block 8: Gradio App
+#@title Wine Country App - Code Block 9: Gradio App
 import gradio as gr
 
 def respond(message, chat_history, history,use_bq, use_gs):
  try:
-
+   message = str(message).strip()
    answer, history = ask_question_with_params(message, model,history,use_bq, use_gs)
  except Exception as e:
    print(e)
@@ -595,7 +615,6 @@ with gr.Blocks() as demo:
    with gr.Row():
       use_bq = gr.Checkbox(label="Use RAG and the Fivetran dataset moved into BigQuery", value=True)
       use_gs = gr.Checkbox(label="Use Google Search for Grounding")
-
 
    msg.submit(respond, [msg, chatbot, state, use_bq, use_gs], [msg, chatbot, state])
    sub_btn.click(respond, inputs=[msg, chatbot, state, use_bq, use_gs], outputs=[msg, chatbot, state])
